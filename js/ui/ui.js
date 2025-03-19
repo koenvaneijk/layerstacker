@@ -12,8 +12,36 @@ const UI = {
         this.finalScoreElement = document.getElementById('final-score');
         this.newHighScoreElement = document.getElementById('new-high-score');
         
+        // Create music toggle button
+        this.createMusicToggle();
+        
         // Load high score from local storage
         this.loadHighScore();
+    },
+    
+    // Create music toggle button
+    createMusicToggle: function() {
+        const musicToggle = document.createElement('div');
+        musicToggle.id = 'music-toggle';
+        musicToggle.innerHTML = '<i class="fas fa-music"></i>';
+        musicToggle.title = 'Toggle Music';
+        musicToggle.classList.add('music-on');
+        
+        // Add click event
+        musicToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const isMuted = SoundManager.toggleMuteMusic();
+            if (isMuted) {
+                musicToggle.classList.remove('music-on');
+                musicToggle.classList.add('music-off');
+            } else {
+                musicToggle.classList.remove('music-off');
+                musicToggle.classList.add('music-on');
+            }
+        });
+        
+        document.getElementById('ui-container').appendChild(musicToggle);
     },
     
     // Show the start screen with animation

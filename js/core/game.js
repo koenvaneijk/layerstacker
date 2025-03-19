@@ -26,6 +26,10 @@ const Game = {
         // Show start screen
         UI.showStartScreen();
         
+        // Start background music for menu
+        SoundManager.startAudioContext();
+        SoundManager.playMenuMusic();
+        
         // Start animation loop
         this.animate();
     },
@@ -77,6 +81,9 @@ const Game = {
         
         // Enable input
         InputHandler.enable();
+        
+        // Switch from menu to game music
+        SoundManager.playGameMusic();
     },
     
     // Restart the game
@@ -155,6 +162,9 @@ const Game = {
         
         // Shake camera
         GameRenderer.shakeCamera(1, 0.5);
+        
+        // Switch to game over music
+        SoundManager.playGameOverMusic();
         
         // Show game over screen after a short delay
         setTimeout(() => {

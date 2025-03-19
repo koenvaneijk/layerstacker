@@ -62,6 +62,42 @@ body {
     animation: glow 2s infinite alternate;
 }
 
+#music-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(10, 10, 40, 0.5);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 1px solid rgba(74, 74, 233, 0.5);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    box-shadow: 0 0 15px rgba(74, 74, 233, 0.3);
+    transition: all 0.3s ease;
+    color: white;
+    font-size: 18px;
+    pointer-events: auto;
+    z-index: 100;
+}
+
+#music-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(74, 74, 233, 0.6);
+}
+
+#music-toggle.music-on {
+    color: #8d50ff;
+}
+
+#music-toggle.music-off {
+    color: #666;
+}
+
 #score-container:hover {
     transform: scale(1.05);
     box-shadow: 0 0 20px rgba(74, 74, 233, 0.5);
