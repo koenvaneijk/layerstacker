@@ -428,14 +428,18 @@ const SoundManager = {
     playMenuMusic: function() {
         this.stopMusic();
         
+        // Reset transport time to avoid scheduling conflicts
+        Tone.Transport.stop();
+        Tone.Transport.position = 0;
+        
         // Set tempo
         Tone.Transport.bpm.value = this.music.menuLoop.bpm;
         
         // Start sequences
         this.music.menuLoop.sequences.forEach(seq => seq.start());
         
-        // Start transport if needed
-        Tone.Transport.start();
+        // Start transport with a small delay to ensure everything is properly initialized
+        Tone.Transport.start("+0.1");
         
         // Store reference to current loop
         this.music.currentLoop = "menu";
@@ -445,14 +449,18 @@ const SoundManager = {
     playGameMusic: function() {
         this.stopMusic();
         
+        // Reset transport time to avoid scheduling conflicts
+        Tone.Transport.stop();
+        Tone.Transport.position = 0;
+        
         // Set tempo
         Tone.Transport.bpm.value = this.music.gameLoop.bpm;
         
         // Start sequences
         this.music.gameLoop.sequences.forEach(seq => seq.start());
         
-        // Start transport if needed
-        Tone.Transport.start();
+        // Start transport with a small delay to ensure everything is properly initialized
+        Tone.Transport.start("+0.1");
         
         // Store reference to current loop
         this.music.currentLoop = "game";
@@ -462,16 +470,27 @@ const SoundManager = {
     playGameOverMusic: function() {
         this.stopMusic();
         
+        // Reset transport time to avoid scheduling conflicts
+        Tone.Transport.stop();
+        Tone.Transport.position = 0;
+        
         // Set tempo
         Tone.Transport.bpm.value = this.music.gameOverLoop.bpm;
         
-        // Start sequences
-        this.music.gameOverLoop.sequences.forEach(seq => seq.start());
+        // Start sequences after a small delay to avoid timing conflicts
+        setTimeout(() => {
+            // Double-check that we're not in another music loop
+            if (this.music.currentLoop !== "gameOver") {
+                return;
+            }
+            
+            this.music.gameOverLoop.sequences.forEach(seq => seq.start());
+            
+            // Start transport with a small delay
+            Tone.Transport.start("+0.1");
+        }, 100);
         
-        // Start transport if needed
-        Tone.Transport.start();
-        
-        // Store reference to current loop
+        // Store reference to current loop (set this immediately)
         this.music.currentLoop = "gameOver";
     },
     
@@ -489,7 +508,10 @@ const SoundManager = {
             this.music.gameOverLoop.sequences.forEach(seq => seq.stop());
         }
         
-        // Don't stop transport as it may be used by sound effects
+        // We need to stop the transport to avoid scheduling conflicts 
+        // when starting a new music loop
+        Tone.Transport.stop();
+        
         this.music.currentLoop = null;
     },
     
