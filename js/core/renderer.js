@@ -213,6 +213,7 @@ const GameRenderer = {
         const ring = new THREE.Mesh(ringGeometry, ringMaterial);
         ring.position.y = -0.45;
         ring.rotation.x = Math.PI / 2;
+        ring.userData.isEnvironment = true; // Tag as environment object to preserve during cleanup
         this.scene.add(ring);
         
         // Animate the ring
@@ -255,6 +256,7 @@ const GameRenderer = {
     createFloatingParticles: function() {
         const particleCount = 150;
         const particleGroup = new THREE.Group();
+        particleGroup.userData.isEnvironment = true; // Tag the whole group as an environment object
         
         // Create particles with different colors and sizes
         for (let i = 0; i < particleCount; i++) {
@@ -306,6 +308,9 @@ const GameRenderer = {
         }
         
         this.scene.add(particleGroup);
+            
+        // Store a reference to the particle group for reuse on restart
+        this.particleGroup = particleGroup;
     },
     
     // Handle window resize
@@ -323,6 +328,10 @@ const GameRenderer = {
         
         // Update all animated objects
         for (const obj of this.animatedObjects) {
+            // Tag the object as animated if it's not already
+            if (obj.object && obj.object.userData) {
+                obj.object.userData.isAnimated = true;
+            }
             obj.update(time);
         }
     },

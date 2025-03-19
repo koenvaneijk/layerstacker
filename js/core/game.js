@@ -92,9 +92,9 @@ const Game = {
         // Remove all meshes from the scene except environment elements
         for (let i = GameRenderer.scene.children.length - 1; i >= 0; i--) {
             const object = GameRenderer.scene.children[i];
-            // Keep objects tagged as environment and the first few objects (lights, ground)
-            if (object.userData && object.userData.isEnvironment) {
-                continue; // Skip environment objects like skybox
+            // Keep objects tagged as environment, animated objects, and the first few objects (lights, ground)
+            if (object.userData && (object.userData.isEnvironment || object.userData.isAnimated)) {
+                continue; // Skip environment and animated objects
             }
             // Also preserve the first 3 objects which are usually lights and ground
             if (i < 3) {
@@ -105,6 +105,9 @@ const Game = {
         
         // Reset physics
         Physics.reset();
+        
+        // Reset clock to ensure animations continue properly
+        GameRenderer.clock = new THREE.Clock();
     },
     
     // Handle player input (tap/click)
