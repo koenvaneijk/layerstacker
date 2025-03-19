@@ -134,7 +134,7 @@ body {
     transform: translate(-50%, -50%);
     background: rgba(10, 10, 40, 0.8);
     color: white;
-    padding: 40px 60px;
+    padding: 20px 30px;
     border-radius: 20px;
     text-align: center;
     pointer-events: auto;
@@ -144,54 +144,56 @@ body {
     box-shadow: 0 0 30px rgba(74, 74, 233, 0.5);
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 h1 {
     font-family: 'Orbitron', sans-serif;
-    font-size: 54px;
-    margin-bottom: 20px;
+    font-size: 36px;
+    margin-bottom: 15px;
     color: #ffffff;
     text-shadow: 0 0 15px rgba(74, 74, 233, 0.8);
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-transform: uppercase;
 }
 
 h2 {
     font-family: 'Orbitron', sans-serif;
-    font-size: 42px;
-    margin-bottom: 20px;
+    font-size: 32px;
+    margin-bottom: 15px;
     color: #ffffff;
     text-shadow: 0 0 15px rgba(74, 74, 233, 0.8);
     letter-spacing: 2px;
 }
 
 .game-instructions {
-    margin: 20px 0;
+    margin: 15px 0;
     text-align: left;
-    max-width: 500px;
+    max-width: 100%;
     margin-left: auto;
     margin-right: auto;
 }
 
 .game-instructions h3 {
     font-family: 'Orbitron', sans-serif;
-    font-size: 20px;
-    margin-bottom: 10px;
+    font-size: 16px;
+    margin-bottom: 8px;
     color: #8d50ff;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
 }
 
 .game-instructions ul {
     list-style-type: none;
     padding: 0;
-    margin: 15px 0;
+    margin: 10px 0;
 }
 
 .game-instructions li {
-    padding: 8px 0 8px 30px;
+    padding: 5px 0 5px 22px;
     position: relative;
-    font-size: 15px;
-    line-height: 1.4;
+    font-size: 13px;
+    line-height: 1.3;
 }
 
 .game-instructions li:before {
@@ -213,8 +215,8 @@ h2 {
 
 .start-button, .restart-button {
     display: inline-block;
-    margin-top: 20px;
-    padding: 16px 40px;
+    margin-top: 15px;
+    padding: 12px 30px;
     background: linear-gradient(135deg, #4a4ae9 0%, #8d50ff 100%);
     color: white;
     border-radius: 10px;
@@ -222,7 +224,7 @@ h2 {
     transition: all 0.3s ease;
     font-family: 'Orbitron', sans-serif;
     font-weight: 500;
-    font-size: 18px;
+    font-size: 16px;
     letter-spacing: 1px;
     text-transform: uppercase;
     box-shadow: 0 0 15px rgba(74, 74, 233, 0.5);
@@ -339,4 +341,36 @@ h2 {
 .credits a:hover {
     color: #4a4ae9;
     text-decoration: underline;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+    #start-screen, #game-over-screen {
+        padding: 15px 20px;
+        max-width: 95vw;
+    }
+    
+    h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+    
+    .game-instructions h3 {
+        font-size: 14px;
+    }
+    
+    .game-instructions li {
+        font-size: 12px;
+        padding: 4px 0 4px 18px;
+    }
+    
+    .start-button, .restart-button {
+        padding: 10px 25px;
+        font-size: 14px;
+    }
+    
+    .credits {
+        font-size: 10px;
+        margin-top: 15px;
+    }
 }
