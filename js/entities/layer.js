@@ -17,32 +17,93 @@ class Layer {
     }
     
     createMesh() {
+        // Create a more interesting geometry with chamfered edges
         const geometry = new THREE.BoxGeometry(this.width, this.height, this.depth);
-        const material = new THREE.MeshLambertMaterial({ 
-            color: this.color,
-            flatShading: true
+        
+        // Create a material with more visual appeal
+        const baseColor = this.color;
+        const lighterColor = Colors.getLighterColor(this.color, 1.3);
+        const darkerColor = Colors.getDarkerColor(this.color, 0.7);
+        
+        // Use separate materials for each face for a more interesting look
+        const topMaterial = new THREE.MeshStandardMaterial({
+            color: lighterColor,
+            metalness: 0.4,
+            roughness: 0.3,
+            flatShading: false
         });
         
-        this.mesh = new THREE.Mesh(geometry, material);
-        this.mesh.position.copy(this.position);
-        
-        // Add a subtle shadow effect with a slightly darker bottom face
-        const darkerMaterial = new THREE.MeshLambertMaterial({ 
-            color: Colors.getDarkerColor(this.color, 0.7),
-            flatShading: true
+        const sideMaterial = new THREE.MeshStandardMaterial({
+            color: baseColor,
+            metalness: 0.2,
+            roughness: 0.5,
+            flatShading: false
         });
         
-        this.mesh.material = [
-            material,           // right side
-            material,           // left side
-            material,           // top side
-            darkerMaterial,     // bottom side
-            material,           // front side
-            material            // back side
-        ];
+        const bottomMaterial = new THREE.MeshStandardMaterial({
+            color: darkerColor,
+            metalness: 0.3,
+            roughness: 0.7,
+            flatShading: false
+        });
+        
+        // Create a subtle glow effect around edges
+        const edgeGeometry = new THREE.BoxGeometry(
+            this.width + 0.02, 
+            this.height + 0.02, 
+            this.depth + 0.02
+        );
+        
+        const edgeMaterial = new THREE.MeshBasicMaterial({
+            color: lighterColor,
+            transparent: true,
+            opacity: 0.3,
+            side: THREE.BackSide
+        });
+        
+        const edgeMesh = new THREE.Mesh(edgeGeometry, edgeMaterial);
+        
+        // Create the main mesh
+        this.mesh = new THREE.Group();
+        
+        // Add the main box with different materials for each face
+        const mainBox = new THREE.Mesh(geometry, [
+            sideMaterial,    // right side
+            sideMaterial,    // left side
+            topMaterial,     // top side
+            bottomMaterial,  // bottom side
+            sideMaterial,    // front side
+            sideMaterial     // back side
+        ]);
+        
+        // Enable shadows
+        mainBox.castShadow = true;
+        mainBox.receiveShadow = true;
         
         // Create a subtle bevel effect
-        this.mesh.geometry.translate(0, this.height / 2, 0);
+        mainBox.geometry.translate(0, this.height / 2, 0);
+        edgeMesh.geometry.translate(0, this.height / 2, 0);
+        
+        // Add meshes to the group
+        this.mesh.add(mainBox);
+        this.mesh.add(edgeMesh);
+        
+        // Store reference to inner meshes
+        this.mainBox = mainBox;
+        this.edgeMesh = edgeMesh;
+        
+        // Position the combined mesh
+        this.mesh.position.copy(this.position);
+        
+        // Add reflection cube if available
+        if (window.globalReflectionCube) {
+            topMaterial.envMap = window.globalReflectionCube;
+            sideMaterial.envMap = window.globalReflectionCube;
+            bottomMaterial.envMap = window.globalReflectionCube;
+            topMaterial.envMapIntensity = 0.5;
+            sideMaterial.envMapIntensity = 0.3;
+            bottomMaterial.envMapIntensity = 0.2;
+        }
     }
     
     // Start the layer moving
@@ -58,7 +119,7 @@ class Layer {
         this.position.copy(this.mesh.position);
     }
     
-    // Update layer position during movement
+    // Update layer position during movement with visual effects
     update(delta) {
         if (this.moving) {
             this.mesh.position.x += this.speed * this.direction * delta;
@@ -70,6 +131,22 @@ class Layer {
             } else if (this.mesh.position.x < -10) {
                 this.mesh.position.x = -10;
                 this.direction = 1;
+            }
+            
+            // Add a subtle bob movement for more visual interest
+            this.mesh.position.y = this.position.y + Math.sin(Date.now() * 0.003) * 0.05;
+            
+            // Add a subtle rotation to make it feel more dynamic
+            this.mesh.rotation.z = Math.sin(Date.now() * 0.002) * 0.02;
+            
+            // Pulse the glow effect
+            if (this.edgeMesh) {
+                const pulse = 0.2 + Math.sin(Date.now() * 0.005) * 0.1;
+                this.edgeMesh.material.opacity = pulse;
+                
+                // Subtle scale animation
+                const scaleEffect = 1 + Math.sin(Date.now() * 0.003) * 0.01;
+                this.edgeMesh.scale.set(scaleEffect, scaleEffect, scaleEffect);
             }
         }
     }
