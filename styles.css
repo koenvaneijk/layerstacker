@@ -285,3 +285,22 @@ h2 {
     font-family: 'Orbitron', sans-serif;
     color: #ffffff;
 }
+
+.credits {
+    margin-top: 20px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    font-family: 'Montserrat', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.credits a {
+    color: #8d50ff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.credits a:hover {
+    color: #4a4ae9;
+    text-decoration: underline;
+}

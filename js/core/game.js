@@ -1,5 +1,6 @@
 /**
  * Main game logic for the Layer Stacker game
+ * 100% vibe-coded with AI by Koen van Eijk (vaneijk.koen@gmail.com)
  */
 const Game = {
     isRunning: false,
