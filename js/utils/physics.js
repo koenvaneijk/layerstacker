@@ -252,7 +252,10 @@ const Physics = {
                 // Return to object pool
                 this.activePieces.splice(i, 1);
                 this.fallingPieces.push(piece);
-                piece.removeFromParent();
+                // Safely remove from parent using the older method
+                if (piece.parent) {
+                    piece.parent.remove(piece);
+                }
             }
         }
     },
@@ -314,7 +317,10 @@ const Physics = {
         // Move all active pieces back to the pool
         while (this.activePieces.length > 0) {
             const piece = this.activePieces.pop();
-            piece.removeFromParent();
+            // Safely remove from parent using the older method
+            if (piece.parent) {
+                piece.parent.remove(piece);
+            }
             this.fallingPieces.push(piece);
         }
     }

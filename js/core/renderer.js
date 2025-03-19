@@ -392,7 +392,10 @@ const GameRenderer = {
                     particle.geometry.dispose();
                     particle.material.dispose();
                 });
-                particles.removeFromParent();
+                // Remove particles using the older method
+                if (particles.parent) {
+                    particles.parent.remove(particles);
+                }
             }
         };
         
@@ -558,7 +561,10 @@ const GameRenderer = {
             intensity: 0,
             duration: 0.5,
             onComplete: () => {
-                burstLight.removeFromParent();
+                // Remove light using the older method
+                if (burstLight.parent) {
+                    burstLight.parent.remove(burstLight);
+                }
             }
         });
     },
