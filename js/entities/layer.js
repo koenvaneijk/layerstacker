@@ -216,9 +216,26 @@ class Layer {
     createFallingPieces(overlap, scene) {
         const fallingPieces = [];
         
+        // Create a center point for the overlap to use as reference for physics
+        const overlapCenter = new THREE.Vector3(
+            overlap.overlapCenterX || this.mesh.position.x,
+            this.position.y,
+            overlap.overlapCenterZ || this.mesh.position.z
+        );
+        
+        // Add a small delay between each piece to prevent them from all falling at once
+        let delay = 0;
+        
         for (const piece of overlap.cutPieces) {
-            const geometry = new THREE.BoxGeometry(piece.width, this.height, piece.depth);
-            const material = this.mesh.material[0].clone(); // Use the same material as the layer
+            // Create a clone of the material to allow for individual opacity changes
+            const material = this.mesh.material[0].clone();
+            
+            // Create geometry with a small inset to prevent z-fighting
+            const geometry = new THREE.BoxGeometry(
+                Math.max(0.1, piece.width - 0.02), 
+                this.height, 
+                Math.max(0.1, piece.depth - 0.02)
+            );
             
             const position = new THREE.Vector3(
                 piece.centerX,
@@ -229,8 +246,21 @@ class Layer {
             // Direction is based on which side the piece is falling from
             const direction = piece.centerX > overlap.overlapCenterX ? 1 : -1;
             
-            const fallingPiece = Physics.createFallingPiece(geometry, material, position, direction);
-            scene.add(fallingPiece);
+            // Create the falling piece with a reference to the overlap center
+            const fallingPiece = Physics.createFallingPiece(
+                geometry, 
+                material, 
+                position, 
+                direction,
+                overlapCenter
+            );
+            
+            // Add a small random delay to each piece for a more natural effect
+            setTimeout(() => {
+                scene.add(fallingPiece);
+            }, delay);
+            
+            delay += Math.random() * 30; // 0-30ms delay between pieces
             fallingPieces.push(fallingPiece);
         }
         

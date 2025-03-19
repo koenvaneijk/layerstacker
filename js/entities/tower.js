@@ -97,16 +97,37 @@ class Tower {
         
         // Game over if there's no overlap
         if (overlap.overlapWidth <= 0 || overlap.overlapDepth <= 0) {
+            // For game over, we want to make the entire current layer fall
+            // But we need to break it into smaller pieces for a more realistic effect
+            const piecesCount = Math.max(2, Math.floor(Math.max(this.currentLayer.width, this.currentLayer.depth)));
+            const smallPieces = [];
+            
+            // Break the layer into a grid of smaller pieces
+            const pieceWidth = this.currentLayer.width / piecesCount;
+            const pieceDepth = this.currentLayer.depth / piecesCount;
+            
+            for (let x = 0; x < piecesCount; x++) {
+                for (let z = 0; z < piecesCount; z++) {
+                    // Calculate the center position of this small piece
+                    const centerX = this.currentLayer.mesh.position.x - (this.currentLayer.width / 2) + (pieceWidth / 2) + (x * pieceWidth);
+                    const centerZ = this.currentLayer.mesh.position.z - (this.currentLayer.depth / 2) + (pieceDepth / 2) + (z * pieceDepth);
+                    
+                    smallPieces.push({
+                        width: pieceWidth,
+                        depth: pieceDepth,
+                        centerX: centerX,
+                        centerZ: centerZ
+                    });
+                }
+            }
+            
             return {
                 success: false,
                 perfectMatch: false,
                 fallingPieces: this.currentLayer.createFallingPieces({
-                    cutPieces: [{
-                        width: this.currentLayer.width,
-                        depth: this.currentLayer.depth,
-                        centerX: this.currentLayer.mesh.position.x,
-                        centerZ: this.currentLayer.mesh.position.z
-                    }]
+                    cutPieces: smallPieces,
+                    overlapCenterX: previousLayer.mesh.position.x,
+                    overlapCenterZ: previousLayer.mesh.position.z
                 }, scene)
             };
         }
