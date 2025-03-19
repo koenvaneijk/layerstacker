@@ -82,7 +82,7 @@ const UI = {
         
         // Prepare the screen but keep it hidden
         this.gameOverScreen.style.opacity = 0;
-        this.gameOverScreen.style.transform = 'translate(-50%, -50%) scale(0.9)';
+        //this.gameOverScreen.style.transform = 'translate(-50%, -50%) scale(0.9)';
         this.gameOverScreen.classList.remove('hidden');
         
         // Check if it's a new high score
@@ -104,7 +104,7 @@ const UI = {
         timeline.to(this.gameOverScreen, {
             opacity: 1,
             scale: 1,
-            transform: 'translate(-50%, -50%) scale(1)'
+            // transform: 'translate(-50%, -50%) scale(1)'
         });
         
         // Additional animation for new high score

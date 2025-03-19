@@ -2,7 +2,6 @@
 
 A captivating 3D tower stacking game with modern visuals and procedural audio.
 
-![Layer Stacker Game](https://user-images.githubusercontent.com/placeholder/layerstacker.png)
 
 ## Description
 
