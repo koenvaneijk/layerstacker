@@ -20,6 +20,25 @@ const Shaders = {
         uniform vec3 bottomColor;
         uniform vec3 sunColor;
         uniform vec3 sunPosition;
+        uniform float uTime;
+        
+        // Improved noise function for stars
+        float hash(float n) {
+            return fract(sin(n) * 43758.5453);
+        }
+        
+        float noise(vec3 x) {
+            vec3 p = floor(x);
+            vec3 f = fract(x);
+            f = f * f * (3.0 - 2.0 * f);
+            
+            float n = p.x + p.y * 157.0 + 113.0 * p.z;
+            return mix(
+                mix(mix(hash(n + 0.0), hash(n + 1.0), f.x),
+                    mix(hash(n + 157.0), hash(n + 158.0), f.x), f.y),
+                mix(mix(hash(n + 113.0), hash(n + 114.0), f.x),
+                    mix(hash(n + 270.0), hash(n + 271.0), f.x), f.y), f.z);
+        }
         
         void main() {
             vec3 viewDirection = normalize(vWorldPosition);
@@ -30,19 +49,22 @@ const Shaders = {
             float sunEffect = max(0.0, dot(viewDirection, normalize(sunPosition)));
             sunEffect = pow(sunEffect, 256.0);
             
-            // Add stars (subtle noise pattern)
+            // Animated stars with time-based twinkling
             float starsEffect = 0.0;
             if (viewDirection.y > 0.1) {
+                // Add time to create twinkling effect
                 vec3 starPos = viewDirection * 100.0;
-                float starNoise = fract(sin(dot(floor(starPos), vec3(12.9898, 78.233, 45.164))) * 43758.5453);
-                starsEffect = (starNoise > 0.97) ? 0.5 * pow(starNoise, 8.0) : 0.0;
+                float starNoise = noise(starPos + vec3(0.0, 0.0, uTime * 0.1));
+                float twinkle = 0.5 + 0.5 * sin(uTime * 2.0 + starNoise * 10.0);
+                starsEffect = (starNoise > 0.97) ? 0.5 * pow(starNoise, 8.0) * twinkle : 0.0;
             }
             
-            // Clouds (horizontal bands with noise)
+            // Animated clouds with time-based movement
             float cloudEffect = 0.0;
             if (viewDirection.y > 0.0 && viewDirection.y < 0.7) {
-                vec3 cloudPos = viewDirection * 10.0;
-                float cloudNoise = fract(sin(dot(floor(cloudPos * vec3(5.0, 10.0, 5.0)), vec3(12.9898, 78.233, 45.164))) * 43758.5453);
+                // Move clouds slowly over time
+                vec3 cloudPos = viewDirection * 10.0 + vec3(uTime * 0.05, 0.0, uTime * 0.03);
+                float cloudNoise = noise(cloudPos * vec3(5.0, 10.0, 5.0));
                 cloudEffect = cloudNoise * 0.1 * (1.0 - viewDirection.y);
             }
             

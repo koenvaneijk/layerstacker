@@ -238,13 +238,17 @@ const GameRenderer = {
                 topColor: { value: new THREE.Color(0x0a1029) },
                 bottomColor: { value: new THREE.Color(0x1a2151) },
                 sunColor: { value: new THREE.Color(0xffffee) },
-                sunPosition: { value: new THREE.Vector3(100, 10, 100) }
+                sunPosition: { value: new THREE.Vector3(100, 10, 100) },
+                uTime: { value: 0.0 } // Add time uniform
             }
         );
         
         const sky = new THREE.Mesh(skyGeometry, skyMaterial);
         sky.userData.isEnvironment = true; // Tag as environment object
         this.scene.add(sky);
+        
+        // Store reference to update the time uniform
+        this.skyMaterial = skyMaterial;
     },
     
     // Create floating particles in the background
@@ -603,6 +607,11 @@ const GameRenderer = {
     
     // Render the scene
     render: function() {
+        // Update time uniform for skybox if it exists
+        if (this.skyMaterial && this.skyMaterial.uniforms && this.skyMaterial.uniforms.uTime) {
+            this.skyMaterial.uniforms.uTime.value = this.clock.getElapsedTime();
+        }
+        
         // Always use the standard renderer since composer is disabled
         this.renderer.render(this.scene, this.camera);
     }
