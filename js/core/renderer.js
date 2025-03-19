@@ -243,6 +243,7 @@ const GameRenderer = {
         );
         
         const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+        sky.userData.isEnvironment = true; // Tag as environment object
         this.scene.add(sky);
     },
     

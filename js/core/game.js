@@ -90,8 +90,8 @@ const Game = {
     // Clean up game objects
     cleanUp: function() {
         // Remove all meshes from the scene except environment
-        while (GameRenderer.scene.children.length > 3) { // Keep lights and ground
-            const object = GameRenderer.scene.children[3];
+        while (GameRenderer.scene.children.length > 4) { // Keep lights, ground, and skybox
+            const object = GameRenderer.scene.children[4];
             GameRenderer.scene.remove(object);
         }
         
