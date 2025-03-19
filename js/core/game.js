@@ -6,12 +6,7 @@ const Game = {
     score: 0,
     lastTime: 0,
     
-    // Sound effects
-    sounds: {
-        place: null,
-        perfect: null,
-        gameOver: null
-    },
+    // Sound effects are now handled by SoundManager
     
     // Initialize the game
     init: function() {
@@ -24,8 +19,8 @@ const Game = {
         // Initialize tower
         this.tower = new Tower();
         
-        // Load sounds
-        this.loadSounds();
+        // Initialize sounds
+        this.initSounds();
         
         // Show start screen
         UI.showStartScreen();
@@ -34,29 +29,30 @@ const Game = {
         this.animate();
     },
     
-    // Load sound effects
-    loadSounds: function() {
-        // Simple audio implementation
-        this.sounds.place = new Audio('assets/sounds/place.mp3');
-        this.sounds.perfect = new Audio('assets/sounds/perfect.mp3');
-        this.sounds.gameOver = new Audio('assets/sounds/gameover.mp3');
-        
-        // Preload sounds
-        for (const sound in this.sounds) {
-            if (this.sounds[sound]) {
-                this.sounds[sound].load();
-            }
-        }
+    // Initialize sound effects
+    initSounds: function() {
+        // Initialize the sound manager
+        SoundManager.init();
     },
     
     // Play a sound effect
     playSound: function(soundName) {
-        if (this.sounds[soundName]) {
-            // Reset and play
-            this.sounds[soundName].currentTime = 0;
-            this.sounds[soundName].play().catch(e => {
-                console.log("Audio play failed:", e);
-            });
+        // Start Tone.js context on first user interaction if needed
+        if (Tone.context.state !== "running") {
+            Tone.start();
+        }
+        
+        // Play the requested sound
+        switch(soundName) {
+            case 'place':
+                SoundManager.playPlaceSound();
+                break;
+            case 'perfect':
+                SoundManager.playPerfectSound();
+                break;
+            case 'gameOver':
+                SoundManager.playGameOverSound();
+                break;
         }
     },
     
