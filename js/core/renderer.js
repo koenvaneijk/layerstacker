@@ -15,7 +15,8 @@ const GameRenderer = {
         this.createScene();
         this.createCamera();
         this.createRenderer();
-        this.createPostProcessing();
+        // Skip post-processing to avoid dependency errors
+        // this.createPostProcessing();
         this.createLights();
         this.createEnvironment();
         this.createSkybox();
@@ -89,41 +90,26 @@ const GameRenderer = {
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.renderer.outputEncoding = THREE.sRGBEncoding;
-        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.2;
+        
+        // THREE.sRGBEncoding was renamed to THREE.SRGBColorSpace in newer versions
+        if (THREE.SRGBColorSpace) {
+            this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        } else if (THREE.sRGBEncoding) {
+            this.renderer.outputEncoding = THREE.sRGBEncoding;
+        }
+        
+        if (THREE.ACESFilmicToneMapping) {
+            this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            this.renderer.toneMappingExposure = 1.2;
+        }
     },
     
-    // Set up post-processing effects
+    // Set up post-processing effects - disabled for now
     createPostProcessing: function() {
-        // Create a render pass
-        const renderScene = new THREE.RenderPass(this.scene, this.camera);
-        
-        // Bloom effect for glow
-        const bloomPass = new THREE.UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
-            0.5,    // bloom strength
-            0.3,    // radius
-            0.7     // threshold
-        );
-        
-        // Film grain effect for more cinematic look
-        const filmPass = new THREE.FilmPass(
-            0.15,   // noise intensity
-            0.025,  // scanline intensity
-            648,    // scanline count
-            false   // grayscale
-        );
-        filmPass.renderToScreen = true;
-        
-        // Set up the composer
-        this.composer = new THREE.EffectComposer(this.renderer);
-        this.composer.addPass(renderScene);
-        this.composer.addPass(bloomPass);
-        this.composer.addPass(filmPass);
-        
-        // Store for later reference
-        this.effectBloom = bloomPass;
+        // Skipping post-processing setup since the dependencies are missing
+        // We'll just use the standard renderer
+        this.composer = null;
+        this.effectBloom = null;
     },
     
     // Create lights for the scene
@@ -322,10 +308,6 @@ const GameRenderer = {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        
-        if (this.composer) {
-            this.composer.setSize(window.innerWidth, window.innerHeight);
-        }
     },
     
     // Animation loop for dynamic elements
@@ -614,10 +596,7 @@ const GameRenderer = {
     
     // Render the scene
     render: function() {
-        if (this.composer) {
-            this.composer.render();
-        } else {
-            this.renderer.render(this.scene, this.camera);
-        }
+        // Always use the standard renderer since composer is disabled
+        this.renderer.render(this.scene, this.camera);
     }
 };

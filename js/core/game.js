@@ -37,10 +37,8 @@ const Game = {
     
     // Play a sound effect
     playSound: function(soundName) {
-        // Start Tone.js context on first user interaction if needed
-        if (Tone.context.state !== "running") {
-            Tone.start();
-        }
+        // Start audio context on first user interaction
+        SoundManager.startAudioContext();
         
         // Play the requested sound
         switch(soundName) {

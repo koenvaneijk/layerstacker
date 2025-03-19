@@ -15,12 +15,23 @@ const SoundManager = {
     init: function() {
         if (this.initialized) return;
         
-        // Create synths for each sound effect
+        // We'll initialize Tone.js context on the first user interaction
+        // Create synths for each sound effect but don't start the AudioContext yet
         this.createPlaceSound();
         this.createPerfectSound();
         this.createGameOverSound();
         
+        // Suspend the audio context until user interaction
+        Tone.context.suspend();
+        
         this.initialized = true;
+    },
+    
+    // Start audio context on user interaction
+    startAudioContext: function() {
+        if (Tone.context.state !== "running") {
+            Tone.start();
+        }
     },
     
     // Create a synth for the place sound (short click/tap sound)
@@ -89,22 +100,12 @@ const SoundManager = {
     
     // Play the place sound
     playPlaceSound: function() {
-        // Make sure Tone.js is started
-        if (Tone.context.state !== "running") {
-            Tone.start();
-        }
-        
         // Play a short note
         this.synths.place.triggerAttackRelease("C3", "16n");
     },
     
     // Play the perfect sound
     playPerfectSound: function() {
-        // Make sure Tone.js is started
-        if (Tone.context.state !== "running") {
-            Tone.start();
-        }
-        
         // Play a cheerful chord sequence
         const now = Tone.now();
         this.synths.perfect.triggerAttackRelease(["C4", "E4", "G4"], "8n", now);
@@ -113,10 +114,6 @@ const SoundManager = {
     
     // Play the game over sound
     playGameOverSound: function() {
-        // Make sure Tone.js is started
-        if (Tone.context.state !== "running") {
-            Tone.start();
-        }
         
         // Play a descending pattern
         const now = Tone.now();
