@@ -129,9 +129,55 @@ h2 {
     letter-spacing: 2px;
 }
 
+.game-instructions {
+    margin: 20px 0;
+    text-align: left;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.game-instructions h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #8d50ff;
+    letter-spacing: 2px;
+}
+
+.game-instructions ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 15px 0;
+}
+
+.game-instructions li {
+    padding: 8px 0 8px 30px;
+    position: relative;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.game-instructions li:before {
+    content: "•";
+    color: #4a4ae9;
+    font-size: 20px;
+    position: absolute;
+    left: 10px;
+    top: 6px;
+}
+
+.game-instructions .tip {
+    font-style: italic;
+    color: #ffcc00;
+    margin-top: 15px;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(255, 204, 0, 0.3);
+}
+
 .start-button, .restart-button {
     display: inline-block;
-    margin-top: 30px;
+    margin-top: 20px;
     padding: 16px 40px;
     background: linear-gradient(135deg, #4a4ae9 0%, #8d50ff 100%);
     color: white;
