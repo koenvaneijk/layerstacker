@@ -89,9 +89,17 @@ const Game = {
     
     // Clean up game objects
     cleanUp: function() {
-        // Remove all meshes from the scene except environment
-        while (GameRenderer.scene.children.length > 4) { // Keep lights, ground, and skybox
-            const object = GameRenderer.scene.children[4];
+        // Remove all meshes from the scene except environment elements
+        for (let i = GameRenderer.scene.children.length - 1; i >= 0; i--) {
+            const object = GameRenderer.scene.children[i];
+            // Keep objects tagged as environment and the first few objects (lights, ground)
+            if (object.userData && object.userData.isEnvironment) {
+                continue; // Skip environment objects like skybox
+            }
+            // Also preserve the first 3 objects which are usually lights and ground
+            if (i < 3) {
+                continue;
+            }
             GameRenderer.scene.remove(object);
         }
         
