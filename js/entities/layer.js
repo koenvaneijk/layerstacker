@@ -311,7 +311,17 @@ class Layer {
         
         for (const piece of overlap.cutPieces) {
             // Create a clone of the material to allow for individual opacity changes
-            const material = this.mesh.material[0].clone();
+            // Access the mainBox's material which was defined in createMesh()
+            const material = this.mainBox ? 
+                (Array.isArray(this.mainBox.material) ? 
+                    this.mainBox.material[0].clone() : 
+                    this.mainBox.material.clone()
+                ) : 
+                new THREE.MeshStandardMaterial({
+                    color: this.color,
+                    metalness: 0.2,
+                    roughness: 0.5
+                });
             
             // Create geometry with a small inset to prevent z-fighting
             const geometry = new THREE.BoxGeometry(

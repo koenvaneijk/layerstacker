@@ -21,8 +21,8 @@ const SoundManager = {
         this.createPerfectSound();
         this.createGameOverSound();
         
-        // Suspend the audio context until user interaction
-        Tone.context.suspend();
+        // Modern versions of Tone.js don't need suspend() - they start in suspended state
+        // We'll start the context on user interaction
         
         this.initialized = true;
     },
