@@ -14,19 +14,70 @@ const Physics = {
         this.activePieces = [];
     },
     
-    // Create a falling piece from a geometry
+    // Create a falling piece from a geometry with enhanced visual effects
     createFallingPiece: function(geometry, material, position, direction, overlapCenter) {
         let piece;
         
         // Try to reuse an existing piece from the pool
         if (this.fallingPieces.length > 0) {
             piece = this.fallingPieces.pop();
-            piece.geometry.dispose();
-            piece.geometry = geometry;
-            piece.material = material;
+            
+            // Clean up old geometry
+            if (piece.geometry) {
+                piece.geometry.dispose();
+            }
+            
+            // If piece is a group, clean up children first
+            if (piece.isGroup) {
+                while (piece.children.length > 0) {
+                    const child = piece.children[0];
+                    if (child.geometry) child.geometry.dispose();
+                    if (child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(m => m.dispose());
+                        } else {
+                            child.material.dispose();
+                        }
+                    }
+                    piece.remove(child);
+                }
+                
+                // Create new mesh as child
+                const newMesh = new THREE.Mesh(geometry, material);
+                piece.add(newMesh);
+            } else {
+                // Replace geometry and material
+                piece.geometry = geometry;
+                piece.material = material;
+            }
         } else {
-            // Create a new piece if none are available in the pool
-            piece = new THREE.Mesh(geometry, material);
+            // Create a new group to hold the piece and effects
+            piece = new THREE.Group();
+            
+            // Main mesh
+            const mainMesh = new THREE.Mesh(geometry, material);
+            piece.add(mainMesh);
+            
+            // Optional: Add trail effect for more visual interest
+            if (Math.random() > 0.5) {
+                const trailGeometry = new THREE.PlaneGeometry(0.2, 0.8);
+                const trailMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+                
+                const trail = new THREE.Mesh(trailGeometry, trailMaterial);
+                trail.position.set(0, -0.4, 0);
+                trail.rotation.x = Math.PI / 2;
+                piece.add(trail);
+                
+                // Store for animation
+                piece.userData.trail = trail;
+            }
+            
+            piece.isGroup = true; // Mark as a group for future reference
         }
         
         // Set initial position and physics properties
@@ -47,32 +98,46 @@ const Physics = {
         }
         directionVector.normalize();
         
-        // Initial velocity: horizontal component away from center + small random variation
+        // More dynamic initial velocities for better visual interest
         piece.userData.velocity = new THREE.Vector3(
-            directionVector.x * (2 + Math.random() * 2),
-            0.5 + Math.random() * 1.5, // Small upward initial velocity for better visual effect
-            directionVector.z * (2 + Math.random() * 2)
+            directionVector.x * (3 + Math.random() * 3),
+            1.0 + Math.random() * 2.5, // Higher upward initial velocity for better arc
+            directionVector.z * (3 + Math.random() * 3)
         );
         
-        // Rotation velocity based on the direction of fall
+        // More dramatic rotation velocities
         piece.userData.rotationVelocity = new THREE.Vector3(
-            directionVector.z * (0.05 + Math.random() * 0.05),
-            Math.random() * 0.03,
-            -directionVector.x * (0.05 + Math.random() * 0.05)
+            directionVector.z * (0.1 + Math.random() * 0.15),
+            Math.random() * 0.1,
+            -directionVector.x * (0.1 + Math.random() * 0.15)
         );
+        
+        // Add some random spin to make it more chaotic
+        if (Math.random() > 0.5) {
+            piece.userData.rotationVelocity.y = 0.2 + Math.random() * 0.3;
+        }
         
         piece.userData.lifetime = 0;
         piece.userData.maxLifetime = 3 + Math.random() * 2; // 3-5 seconds lifetime
+        piece.userData.initialColor = material.color ? material.color.clone() : null;
         
         // Add a small random offset to prevent pieces from starting at exactly the same position
         piece.position.x += (Math.random() - 0.5) * 0.05;
         piece.position.z += (Math.random() - 0.5) * 0.05;
         
+        // Enable shadows
+        piece.traverse(child => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
+        
         this.activePieces.push(piece);
         return piece;
     },
     
-    // Update all falling pieces
+    // Update all falling pieces with enhanced effects
     update: function(delta) {
         for (let i = this.activePieces.length - 1; i >= 0; i--) {
             const piece = this.activePieces[i];
@@ -95,6 +160,11 @@ const Physics = {
             piece.rotation.y += piece.userData.rotationVelocity.y * delta * 60;
             piece.rotation.z += piece.userData.rotationVelocity.z * delta * 60;
             
+            // Add slight oscillation to rotation for more dynamic effect
+            const oscillation = Math.sin(piece.userData.lifetime * 5) * 0.02;
+            piece.rotation.x += oscillation;
+            piece.rotation.z += oscillation;
+            
             // Gradually slow down rotation
             piece.userData.rotationVelocity.x *= 0.99;
             piece.userData.rotationVelocity.y *= 0.99;
@@ -103,13 +173,66 @@ const Physics = {
             // Update lifetime
             piece.userData.lifetime += delta;
             
+            // Update trail effect if present
+            if (piece.userData.trail) {
+                // Make trail follow the velocity direction
+                const trail = piece.userData.trail;
+                trail.lookAt(
+                    piece.position.x - piece.userData.velocity.x,
+                    piece.position.y - piece.userData.velocity.y,
+                    piece.position.z - piece.userData.velocity.z
+                );
+                
+                // Scale the trail based on velocity
+                const speed = piece.userData.velocity.length();
+                const trailScale = Math.min(1.5, speed * 0.1);
+                trail.scale.y = trailScale;
+                
+                // Fade out trail over time
+                if (piece.userData.lifetime > piece.userData.maxLifetime * 0.5) {
+                    trail.material.opacity = 0.3 * (1 - (piece.userData.lifetime - (piece.userData.maxLifetime * 0.5)) / (piece.userData.maxLifetime * 0.5));
+                }
+            }
+            
+            // Color transition as pieces fall - shift towards blue/darker
+            if (piece.userData.initialColor) {
+                // For each child that's a mesh
+                piece.traverse(child => {
+                    if (child.isMesh && child.material && child.material.color) {
+                        const progress = piece.userData.lifetime / piece.userData.maxLifetime;
+                        const initialColor = piece.userData.initialColor;
+                        
+                        // Transition to blue color as piece falls
+                        child.material.color.r = initialColor.r - initialColor.r * progress * 0.7;
+                        child.material.color.g = initialColor.g - initialColor.g * progress * 0.5;
+                        child.material.color.b = Math.min(1, initialColor.b + (1 - initialColor.b) * progress * 0.5);
+                    }
+                });
+            }
+            
             // Fade out pieces as they approach their max lifetime
             if (piece.userData.lifetime > piece.userData.maxLifetime * 0.7) {
                 const opacity = 1 - ((piece.userData.lifetime - (piece.userData.maxLifetime * 0.7)) / (piece.userData.maxLifetime * 0.3));
-                if (piece.material.opacity !== undefined) {
-                    piece.material.opacity = Math.max(0, opacity);
-                    piece.material.transparent = true;
-                }
+                
+                // Apply opacity to all submeshes
+                piece.traverse(child => {
+                    if (child.isMesh && child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(m => {
+                                m.opacity = Math.max(0, opacity);
+                                m.transparent = true;
+                            });
+                        } else {
+                            child.material.opacity = Math.max(0, opacity);
+                            child.material.transparent = true;
+                        }
+                    }
+                });
+            }
+            
+            // Occasional particle emission for falling pieces
+            if (Math.random() < delta * 2 && piece.userData.lifetime < piece.userData.maxLifetime * 0.7) {
+                this.emitParticleFromPiece(piece);
             }
             
             // Remove pieces that have fallen too far or lived too long
@@ -120,6 +243,42 @@ const Physics = {
                 piece.removeFromParent();
             }
         }
+    },
+    
+    // Emit a small dust particle from a falling piece
+    emitParticleFromPiece: function(piece) {
+        // Create a small particle geometry
+        const geometry = new THREE.SphereGeometry(0.05, 4, 4);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x80a0ff,
+            transparent: true,
+            opacity: 0.7
+        });
+        
+        const particle = new THREE.Mesh(geometry, material);
+        
+        // Position at the piece
+        particle.position.copy(piece.position);
+        
+        // Add small random offset
+        particle.position.x += (Math.random() - 0.5) * 0.2;
+        particle.position.y += (Math.random() - 0.5) * 0.2;
+        particle.position.z += (Math.random() - 0.5) * 0.2;
+        
+        // Give it a slower velocity than the piece
+        particle.userData.velocity = new THREE.Vector3(
+            piece.userData.velocity.x * 0.1,
+            piece.userData.velocity.y * 0.1,
+            piece.userData.velocity.z * 0.1
+        );
+        
+        // Short lifetime
+        particle.userData.lifetime = 0;
+        particle.userData.maxLifetime = 0.5 + Math.random() * 0.5;
+        
+        // Add to the active pieces array
+        this.activePieces.push(particle);
+        THREE.SceneUtils.attach(particle, null, piece.parent);
     },
     
     // Clean up all pieces
