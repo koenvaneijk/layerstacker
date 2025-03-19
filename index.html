@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Layer Stacker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="ui-container">
+            <div id="score-container">
+                <div id="current-score">0</div>
+                <div id="high-score">Best: 0</div>
+            </div>
+            <div id="start-screen">
+                <h1>Layer Stacker</h1>
+                <p>Tap to place each layer</p>
+                <div class="start-button">Tap to Start</div>
+            </div>
+            <div id="game-over-screen" class="hidden">
+                <h2>Game Over</h2>
+                <div id="final-score">Score: 0</div>
+                <div id="new-high-score" class="hidden">New High Score!</div>
+                <div class="restart-button">Tap to Restart</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Third-party libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+
+    <!-- Game scripts -->
+    <script src="js/utils/colors.js"></script>
+    <script src="js/utils/physics.js"></script>
+    <script src="js/entities/layer.js"></script>
+    <script src="js/entities/tower.js"></script>
+    <script src="js/core/input.js"></script>
+    <script src="js/core/renderer.js"></script>
+    <script src="js/ui/ui.js"></script>
+    <script src="js/core/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
