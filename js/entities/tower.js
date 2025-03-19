@@ -137,6 +137,11 @@ class Tower {
         
         // Create a new layer based on the overlap
         const newLayer = this.currentLayer.createOverlapLayer(overlap);
+        
+        // Ensure the new layer is positioned correctly
+        newLayer.position.set(overlap.overlapCenterX, this.currentLayer.position.y, overlap.overlapCenterZ);
+        newLayer.mesh.position.set(overlap.overlapCenterX, this.currentLayer.position.y, overlap.overlapCenterZ);
+        
         scene.add(newLayer.mesh);
         this.layers.push(newLayer);
         

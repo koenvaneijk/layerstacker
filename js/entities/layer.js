@@ -113,9 +113,9 @@ class Layer {
         const overlapBack = Math.min(thisBack, prevBack);
         const overlapDepth = Math.max(0, overlapBack - overlapFront);
         
-        // Calculate center of overlap
-        const overlapCenterX = (overlapLeft + overlapRight) / 2;
-        const overlapCenterZ = (overlapFront + overlapBack) / 2;
+        // Calculate center of overlap - ensure it's precise
+        const overlapCenterX = parseFloat(((overlapLeft + overlapRight) / 2).toFixed(4));
+        const overlapCenterZ = parseFloat(((overlapFront + overlapBack) / 2).toFixed(4));
         
         // Check if there's no overlap
         if (overlapWidth <= 0 || overlapDepth <= 0) {
@@ -203,13 +203,18 @@ class Layer {
     // Create a new layer based on the overlap with the previous layer
     createOverlapLayer(overlap) {
         // Create a new layer with the overlap dimensions
-        return new Layer(
+        const newLayer = new Layer(
             overlap.overlapWidth,
             overlap.overlapDepth,
             this.height,
             new THREE.Vector3(overlap.overlapCenterX, this.position.y, overlap.overlapCenterZ),
             this.color
         );
+        
+        // Ensure the mesh is positioned correctly
+        newLayer.mesh.position.set(overlap.overlapCenterX, this.position.y, overlap.overlapCenterZ);
+        
+        return newLayer;
     }
     
     // Create falling pieces for the parts that don't overlap
@@ -217,10 +222,11 @@ class Layer {
         const fallingPieces = [];
         
         // Create a center point for the overlap to use as reference for physics
+        // Use the exact position values from the overlap calculation
         const overlapCenter = new THREE.Vector3(
-            overlap.overlapCenterX || this.mesh.position.x,
+            overlap.overlapCenterX !== undefined ? overlap.overlapCenterX : this.mesh.position.x,
             this.position.y,
-            overlap.overlapCenterZ || this.mesh.position.z
+            overlap.overlapCenterZ !== undefined ? overlap.overlapCenterZ : this.mesh.position.z
         );
         
         // Add a small delay between each piece to prevent them from all falling at once
