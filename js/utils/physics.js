@@ -142,6 +142,12 @@ const Physics = {
         for (let i = this.activePieces.length - 1; i >= 0; i--) {
             const piece = this.activePieces[i];
             
+            // Skip if piece is invalid
+            if (!piece || !piece.userData) {
+                this.activePieces.splice(i, 1);
+                continue;
+            }
+            
             // Apply gravity with a more realistic acceleration
             piece.userData.velocity.y -= this.gravity * delta;
             
@@ -156,19 +162,25 @@ const Physics = {
             piece.position.z += piece.userData.velocity.z * delta;
             
             // Update rotation - scale by delta for consistent rotation speed
-            piece.rotation.x += piece.userData.rotationVelocity.x * delta * 60; // Normalize to 60fps
-            piece.rotation.y += piece.userData.rotationVelocity.y * delta * 60;
-            piece.rotation.z += piece.userData.rotationVelocity.z * delta * 60;
+            if (piece.rotation) {
+                piece.rotation.x += piece.userData.rotationVelocity.x * delta * 60; // Normalize to 60fps
+                piece.rotation.y += piece.userData.rotationVelocity.y * delta * 60;
+                piece.rotation.z += piece.userData.rotationVelocity.z * delta * 60;
+            }
             
             // Add slight oscillation to rotation for more dynamic effect
-            const oscillation = Math.sin(piece.userData.lifetime * 5) * 0.02;
-            piece.rotation.x += oscillation;
-            piece.rotation.z += oscillation;
+            if (piece.rotation) {
+                const oscillation = Math.sin(piece.userData.lifetime * 5) * 0.02;
+                piece.rotation.x += oscillation;
+                piece.rotation.z += oscillation;
+            }
             
             // Gradually slow down rotation
-            piece.userData.rotationVelocity.x *= 0.99;
-            piece.userData.rotationVelocity.y *= 0.99;
-            piece.userData.rotationVelocity.z *= 0.99;
+            if (piece.userData.rotationVelocity) {
+                piece.userData.rotationVelocity.x *= 0.99;
+                piece.userData.rotationVelocity.y *= 0.99;
+                piece.userData.rotationVelocity.z *= 0.99;
+            }
             
             // Update lifetime
             piece.userData.lifetime += delta;
@@ -247,6 +259,11 @@ const Physics = {
     
     // Emit a small dust particle from a falling piece
     emitParticleFromPiece: function(piece) {
+        // Safety check - ensure the piece has valid data
+        if (!piece || !piece.position || !piece.userData || !piece.userData.velocity) {
+            return;
+        }
+        
         // Create a small particle geometry
         const geometry = new THREE.SphereGeometry(0.05, 4, 4);
         const material = new THREE.MeshBasicMaterial({
@@ -276,9 +293,20 @@ const Physics = {
         particle.userData.lifetime = 0;
         particle.userData.maxLifetime = 0.5 + Math.random() * 0.5;
         
+        // Initialize rotation velocity for the particle
+        particle.userData.rotationVelocity = new THREE.Vector3(
+            (Math.random() - 0.5) * 0.2,
+            (Math.random() - 0.5) * 0.2,
+            (Math.random() - 0.5) * 0.2
+        );
+        
         // Add to the active pieces array
         this.activePieces.push(particle);
-        THREE.SceneUtils.attach(particle, null, piece.parent);
+        
+        // Add to the scene - THREE.SceneUtils.attach is deprecated
+        if (piece.parent) {
+            piece.parent.add(particle);
+        }
     },
     
     // Clean up all pieces
