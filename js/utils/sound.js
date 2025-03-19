@@ -369,7 +369,7 @@ const SoundManager = {
         hihatSequence.stop();
     },
     
-    // Create game over music
+    // Create game over music - we use a different approach without sequences
     createGameOverMusic: function() {
         // Melancholic piano
         const piano = new Tone.Synth({
@@ -390,38 +390,14 @@ const SoundManager = {
         
         piano.connect(reverb);
         
-        // Slow, melancholic melody
-        const melodyNotes = [
-            "E4", "B3", "C4", "D4", 
-            "E4", "B3", "A3", null, 
-            "D4", "A3", "B3", "C4", 
-            "D4", "A3", "G3", null
-        ];
-        
-        const melodyTiming = [
-            "4n", "8n", "8n", "4n",
-            "4n", "8n", "2n", "8n",
-            "4n", "8n", "8n", "4n",
-            "4n", "8n", "2n", "8n"
-        ];
-        
-        // Create sequence with note durations
-        const melodySequence = new Tone.Sequence((time, note, index) => {
-            if (note) {
-                piano.triggerAttackRelease(note, melodyTiming[index], time);
-            }
-        }, melodyNotes, "4n").start(0);
-        
-        // Store components
+        // Store components without sequences
         this.music.gameOverLoop = {
             piano,
             reverb,
-            sequences: [melodySequence],
             bpm: 60
         };
         
-        // Set initial state (stopped)
-        melodySequence.stop();
+        // We'll play the melody directly when needed instead of using sequences
     },
     
     // Start menu music
@@ -466,32 +442,131 @@ const SoundManager = {
         this.music.currentLoop = "game";
     },
     
-    // Start game over music
+    // Start game over music - play directly without sequences
     playGameOverMusic: function() {
         this.stopMusic();
         
-        // Reset transport time to avoid scheduling conflicts
+        // Clear any pending events and completely cancel the Transport
+        Tone.Transport.cancel();
         Tone.Transport.stop();
-        Tone.Transport.position = 0;
         
-        // Set tempo
-        Tone.Transport.bpm.value = this.music.gameOverLoop.bpm;
+        // Store reference to current loop
+        this.music.currentLoop = "gameOver";
         
-        // Start sequences after a small delay to avoid timing conflicts
-        setTimeout(() => {
-            // Double-check that we're not in another music loop
-            if (this.music.currentLoop !== "gameOver") {
-                return;
+        // Get the piano instrument
+        const piano = this.music.gameOverLoop.piano;
+        
+        // Play the melody directly with exact timings instead of using sequences
+        // This avoids timing conflicts entirely
+        
+        // Define the melody
+        const melodyNotes = [
+            "E4", "B3", "C4", "D4", 
+            "E4", "B3", "A3", null, 
+            "D4", "A3", "B3", "C4", 
+            "D4", "A3", "G3", null
+        ];
+        
+        const melodyTiming = [
+            "4n", "8n", "8n", "4n",
+            "4n", "8n", "2n", "8n",
+            "4n", "8n", "8n", "4n",
+            "4n", "8n", "2n", "8n"
+        ];
+        
+        // Calculate actual time durations in seconds
+        const bpm = this.music.gameOverLoop.bpm;
+        const beatDuration = 60 / bpm; // seconds per beat
+        
+        const timingMap = {
+            "8n": beatDuration / 2,
+            "4n": beatDuration,
+            "2n": beatDuration * 2
+        };
+        
+        // Play each note with setTimeout instead of using Tone.Transport
+        let currentTime = 0.1; // Start with a small delay
+        
+        melodyNotes.forEach((note, index) => {
+            if (note) {
+                // Schedule note with setTimeout
+                setTimeout(() => {
+                    // Only play if we're still in game over state
+                    if (this.music.currentLoop === "gameOver") {
+                        piano.triggerAttackRelease(note, melodyTiming[index]);
+                    }
+                }, currentTime * 1000); // Convert to milliseconds
             }
             
-            this.music.gameOverLoop.sequences.forEach(seq => seq.start());
-            
-            // Start transport with a small delay
-            Tone.Transport.start("+0.1");
-        }, 100);
+            // Add the timing for this note to the current time
+            currentTime += timingMap[melodyTiming[index]];
+        });
         
-        // Store reference to current loop (set this immediately)
-        this.music.currentLoop = "gameOver";
+        // Loop the melody once
+        setTimeout(() => {
+            // Only loop if we're still in game over state
+            if (this.music.currentLoop === "gameOver") {
+                this.playGameOverMelodyOnce();
+            }
+        }, currentTime * 1000 + 1000); // Add 1 second gap between loops
+    },
+    
+    // Play the game over melody once (for looping)
+    playGameOverMelodyOnce: function() {
+        if (this.music.currentLoop !== "gameOver") return;
+        
+        const piano = this.music.gameOverLoop.piano;
+        
+        // Define the melody
+        const melodyNotes = [
+            "E4", "B3", "C4", "D4", 
+            "E4", "B3", "A3", null, 
+            "D4", "A3", "B3", "C4", 
+            "D4", "A3", "G3", null
+        ];
+        
+        const melodyTiming = [
+            "4n", "8n", "8n", "4n",
+            "4n", "8n", "2n", "8n",
+            "4n", "8n", "8n", "4n",
+            "4n", "8n", "2n", "8n"
+        ];
+        
+        // Calculate actual time durations in seconds
+        const bpm = this.music.gameOverLoop.bpm;
+        const beatDuration = 60 / bpm; // seconds per beat
+        
+        const timingMap = {
+            "8n": beatDuration / 2,
+            "4n": beatDuration,
+            "2n": beatDuration * 2
+        };
+        
+        // Play each note with setTimeout instead of using Tone.Transport
+        let currentTime = 0.1; // Start with a small delay
+        
+        melodyNotes.forEach((note, index) => {
+            if (note) {
+                // Schedule note with setTimeout
+                setTimeout(() => {
+                    // Only play if we're still in game over state
+                    if (this.music.currentLoop === "gameOver") {
+                        piano.triggerAttackRelease(note, melodyTiming[index]);
+                    }
+                }, currentTime * 1000); // Convert to milliseconds
+            }
+            
+            // Add the timing for this note to the current time
+            currentTime += timingMap[melodyTiming[index]];
+        });
+        
+        // Loop again
+        setTimeout(() => {
+            // Only loop if we're still in game over state
+            if (this.music.currentLoop === "gameOver") {
+                this.playGameOverMelodyOnce();
+            }
+        }, currentTime * 1000 + 1000); // Add 1 second gap between loops
     },
     
     // Stop all music
@@ -504,12 +579,10 @@ const SoundManager = {
             this.music.gameLoop.sequences.forEach(seq => seq.stop());
         }
         
-        if (this.music.gameOverLoop) {
-            this.music.gameOverLoop.sequences.forEach(seq => seq.stop());
-        }
+        // Game over music doesn't use sequences anymore
         
-        // We need to stop the transport to avoid scheduling conflicts 
-        // when starting a new music loop
+        // Clear all scheduled events, completely resetting the transport
+        Tone.Transport.cancel();
         Tone.Transport.stop();
         
         this.music.currentLoop = null;
